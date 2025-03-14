@@ -29,3 +29,6 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)  # Raises exception if invalid
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+# add member ot trainer views

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",  # Enable Token Blacklisting
 ]
 
 MIDDLEWARE = [
@@ -61,6 +63,20 @@ REST_FRAMEWORK = {
     ),
     "EXCEPTION_HANDLER": "api.utils.custom_exception_handler", # Custom Exception Handler 
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),  # Access token expires in 2 hours
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),  # Refresh token expires in 15 days
+    "ROTATE_REFRESH_TOKENS": False,  # Generates a new refresh token on each use if set to true
+    "BLACKLIST_AFTER_ROTATION": True,  # Prevent reuse of old refresh tokens
+    "AUTH_HEADER_TYPES": ("Bearer",),  # Authorization: Bearer <token>
+    "ALGORITHM": "HS256",  # Default signing algorithm
+    "SIGNING_KEY": SECRET_KEY,  # Uses Django's SECRET_KEY for signing
+    "VERIFYING_KEY": None,
+    "USER_ID_FIELD": "id",  
+    "USER_ID_CLAIM": "user_id",  
+}
+
 
 TEMPLATES = [
     {

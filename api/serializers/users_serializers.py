@@ -3,6 +3,7 @@ from users.models import CustomUser
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import CustomUser
+from datetime import datetime, timezone
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,29 +26,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = [
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "email",
-            "password",
-            "role",
-            "dob",
-            "profile_picture",
-        ]
+        fields = ["id", "username", "first_name", "last_name", "email", "password", "role", "dob", "profile_picture",]
         extra_kwargs = {"role": {"required": False}}  # Role is optional
 
-        def create(self, validated_data):
-            user = CustomUser.objects.create_user(
-                username=validated_data["username"],
-                email=validated_data["email"],
-                password=validated_data["password"],
-                role=validated_data.get("role", "Member"),
-                dob=validated_data.get("dob"),
-                profile_picture=validated_data.get("profile_picture"),
-            )
-            return user
+    def create(self, validated_data):
+        user = CustomUser.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+            role=validated_data.get("role", "Member"),
+            dob=validated_data.get("dob"),
+            profile_picture=validated_data.get("profile_picture"),
+        )
+        return user
 
 
 class LoginSerializer(serializers.Serializer):
@@ -75,11 +66,17 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("User account is disabled.")
 
         # Generate JWT tokens
-        tokens = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+
+        access_expiry = datetime.fromtimestamp(access["exp"], timezone.utc).isoformat()
+        refresh_expiry = datetime.fromtimestamp(refresh["exp"], timezone.utc).isoformat()
 
         return {
             "message": "Login Successful",
             "user": UserSerializer(user).data,
-            "refresh": str(tokens),
-            "access": str(tokens.access_token),
+            "refresh": str(refresh),
+            "access": str(access),
+            "access_expires_at": access_expiry,
+            "refresh_expires_at": refresh_expiry,
         }

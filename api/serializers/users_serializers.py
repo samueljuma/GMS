@@ -6,7 +6,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id","username", "email", "password", "role", "dob", "profile_picture"]
+        fields = ["id","username","first_name","last_name", "email", "password", "role", "dob", "profile_picture"]
         extra_kwargs = {"role": {"required": False}}  # Role is optional
 
         def create(self, validated_data):
@@ -19,3 +19,4 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 profile_picture=validated_data.get("profile_picture"),
             )
             return user
+

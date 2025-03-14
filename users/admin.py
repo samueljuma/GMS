@@ -8,7 +8,7 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     # Show these fields in the list view
-    list_display = ("username", "email", "role", "dob", "profile_picture_preview", "is_staff", "is_superuser")
+    list_display = ("username", "email", "role", "dob", "profile_picture_preview", "is_staff", "is_superuser", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
 
     # Define the form layout when editing a user

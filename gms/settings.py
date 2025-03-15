@@ -66,6 +66,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",  # Requires authentication by default
     ),
+    "DEFAULT_RENDERER_CLASSES": ["api.renderers.CustomJSONRenderer"],
 }
 
 SIMPLE_JWT = {

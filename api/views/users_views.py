@@ -11,7 +11,6 @@ from api.serializers.users_serializers import (
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework.exceptions import ValidationError
-from api.utils import success_response
 from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
@@ -32,11 +31,9 @@ class RegisterView(APIView):
         )  # Automatically raises ValidationError if invalid
 
         user = serializer.save()
-        return success_response(
-            message="User Created Successfully",
+        return Response(
             data={"user": serializer.data},  # Returning user details
-            request=request,
-            status_code=status.HTTP_201_CREATED,
+            status=status.HTTP_201_CREATED,
         )
 
 
@@ -49,11 +46,9 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)  # Raises exception if invalid
-        return success_response(
-            message="Login successful",
+        return Response(
             data=serializer.validated_data,
-            request=request,
-            status_code=status.HTTP_200_OK,
+            status=status.HTTP_200_OK,
         )
 
 
@@ -72,13 +67,10 @@ class CustomTokenRefreshView(TokenRefreshView):
         serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
         serializer.is_valid(raise_exception=True)
 
-        return success_response(
-            message="Token Refresh successful",
-            data=serializer.validated_data,
-            request=request,
-            status_code=status.HTTP_200_OK,
+        return Response(
+            serializer.validated_data,
+            status=status.HTTP_200_OK,
         )
-
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -120,6 +112,6 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         serializer.save()
-        
+
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------

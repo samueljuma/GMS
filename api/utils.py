@@ -2,22 +2,28 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import (
     APIException, ValidationError, ParseError, AuthenticationFailed, NotAuthenticated, 
-    PermissionDenied, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Throttled
+    PermissionDenied, NotFound, MethodNotAllowed, NotAcceptable, UnsupportedMediaType, Throttled,
 )
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.utils.timezone import now
+import time
 
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 def format_validation_errors(errors):
     """
     Converts DRF validation errors into a single readable error message.
     """
     if isinstance(errors, list):
         return " ; ".join(errors)
-    
+
     if isinstance(errors, dict):
         return " ; ".join([f"{key}: {', '.join(value)}" for key, value in errors.items()])
-    
+        # return " ; ".join([f"{', '.join(value)}" for key, value in errors.items()])
+
     return str(errors)
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 def custom_exception_handler(exc, context):
     """
     Custom DRF exception handler to standardize error responses.
@@ -78,6 +84,11 @@ def custom_exception_handler(exc, context):
         error_response["message"] = f"Request was throttled. Try again in {exc.wait} seconds"
         error_response["error"] = "Too Many Requests"
 
+    elif isinstance(exc, InvalidToken) or isinstance(exc, TokenError):
+        error_response["message"] = "Invalid or expired token"
+        error_response["error"] = "Unauthorized"
+        response = Response(error_response, status=401)  # Override response with 401
+
     elif isinstance(exc, APIException):
         error_response["message"] = str(exc.detail)
         error_response["error"] = exc.default_code.replace("_", " ").title()
@@ -90,3 +101,24 @@ def custom_exception_handler(exc, context):
         response = Response(error_response, status=500)
 
     return response
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def success_response(message, data=None, request=None, status_code=200):
+    """
+    Standardized success response format.
+    """
+    response_data = {
+        "message": message,
+        "data": data if data else {},
+        "path": request.path if request else "N/A",
+        "method": request.method if request else "N/A",
+        "timestamp": now().isoformat(),
+        "duration": (
+            f"{int((time.time() - request.start_time) * 1000)}ms"
+            if hasattr(request, "start_time")
+            else "N/A"
+        ),
+    }
+
+    return Response(response_data, status=status_code)

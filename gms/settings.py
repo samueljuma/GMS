@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middlewares.RequestTimerMiddleware",  # Middleware to track request processing time.
 ]
 
 ROOT_URLCONF = "gms.urls"

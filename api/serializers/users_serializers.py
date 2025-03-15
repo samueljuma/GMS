@@ -73,7 +73,6 @@ class LoginSerializer(serializers.Serializer):
         refresh_expiry = datetime.fromtimestamp(refresh["exp"], timezone.utc).isoformat()
 
         return {
-            "message": "Login Successful",
             "user": UserSerializer(user).data,
             "refresh": str(refresh),
             "access": str(access),

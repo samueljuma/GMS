@@ -21,12 +21,6 @@ This document outlines the database schema for a Gym Management System, detailin
 | `created_at`      | DateTime                      | User registration timestamp     |
 | `updated_at`      | DateTime                      | Last profile update             |
 
-### Improvements:
-
-- **Added `phone_number`** (Essential for M-Pesa transactions)
-- **Used Enum for `role`** instead of a string to prevent invalid values
-- **Added `created_at` & `updated_at`** to track user account changes
-
 ---
 
 ## 2. Membership Table (Improved for Plan Flexibility)
@@ -42,12 +36,6 @@ This document outlines the database schema for a Gym Management System, detailin
 | `created_at` | DateTime                          | Record creation timestamp     |
 | `updated_at` | DateTime                          | Last modification             |
 
-### Improvements:
-
-- **Replaced `plan` column with `plan_id`** (Linked to a new `Plans` table for easy management)
-- **Added `status` column** to indicate active/expired/cancelled memberships
-- **Timestamps (`created_at`, `updated_at`)** for tracking changes
-
 ---
 
 ## 3. Plans Table (NEW for Managing Subscription Plans)
@@ -59,10 +47,6 @@ This document outlines the database schema for a Gym Management System, detailin
 | `price`         | Decimal(10,2)   | Cost of the plan                         |
 | `duration_days` | Integer         | Number of days the plan lasts            |
 
-### Why This is Better?
-
-- **Flexible** – You can easily add new plans (e.g., Weekly, Quarterly, etc.)
-- **No duplicate values** – Instead of storing "Daily" or "Monthly" in multiple rows, you store them once in `Plans`
 
 ---
 
@@ -78,11 +62,6 @@ This document outlines the database schema for a Gym Management System, detailin
 | `checked_out_at` | DateTime (Nullable) | Check-out timestamp (if present)       |
 | `trainer_id`     | Foreign Key (Users) | Trainer who marked attendance          |
 
-### Improvements:
-
-- **Added `trainer_id`** to track which trainer marked attendance
-- **Optimized for reports** – Now you can quickly check total present/absent days
-
 ---
 
 ## 5. Payments Table (Enhanced for Payment Tracking & Verification)
@@ -97,11 +76,5 @@ This document outlines the database schema for a Gym Management System, detailin
 | `recorded_by`    | Foreign Key (Users)               | Admin/Trainer who recorded the payment |
 | `status`         | Enum (Pending, Completed, Failed) | Payment state                          |
 | `created_at`     | DateTime                          | Payment timestamp                      |
-
-### Improvements:
-
-- **Added `status` column** to track if a payment was successful or failed
-- **`recorded_by` field** ensures accountability when trainers manually record payments
-- **Supports reconciliation** with `transaction_id` for M-Pesa payments
 
 ---

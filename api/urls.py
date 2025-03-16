@@ -1,5 +1,5 @@
 from django.urls import path, include
-from api.views.users_views import RegisterView, LoginView, CustomTokenRefreshView
+from api.views.users_views import RegisterView, LoginView, CustomTokenRefreshView, LogoutView
 from rest_framework.routers import DefaultRouter
 from rest_framework.routers import DefaultRouter
 from api.views.users_views import UserViewSet
@@ -12,4 +12,5 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),  # Refresh Token
     path("", include(router.urls)), 
+    path("auth/logout/", LogoutView.as_view(), name="logout")
 ]

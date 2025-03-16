@@ -13,9 +13,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["id", "username", "first_name", "last_name", "email", "role", "dob", "profile_picture", "password",]
-        # extra_kwargs = {
-        #     "role": {"read_only": True},  # Prevent users from modifying their role
-        # }
+        extra_kwargs = {
+            "role": {"read_only": True},  # Prevent users from modifying their role
+        }
 
     def create(self, validated_data):
         """Use CustomUserManager to handle user creation and password hashing."""
@@ -34,7 +34,6 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 
@@ -44,15 +43,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {"role": {"required": False}}  # Role is optional
 
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"],
-            role=validated_data.get("role", "Member"),
-            dob=validated_data.get("dob"),
-            profile_picture=validated_data.get("profile_picture"),
-        )
-        return user
+        return CustomUser.objects.create_user(**validated_data)
 
 
 class LoginSerializer(serializers.Serializer):

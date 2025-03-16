@@ -1,7 +1,5 @@
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
-from django.utils.timezone import now
-import time
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,6 +19,7 @@ def extract_error_details(data):
     return str(data)  # Convert raw strings or other types to string
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 def custom_exception_handler(exc, context):
     """
     Custom exception handler to standardize error responses.
@@ -28,10 +27,6 @@ def custom_exception_handler(exc, context):
     - Enhances error structure for better readability.
     """
     response = exception_handler(exc, context)
-
-    # Get request details
-    request = context.get("request", None)
-    path = request.path if request else "N/A"
 
     # Define base error response
     error_response = {

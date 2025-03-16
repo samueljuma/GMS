@@ -2,7 +2,6 @@ from rest_framework.renderers import JSONRenderer
 from django.utils.timezone import now
 import time
 
-
 class CustomJSONRenderer(JSONRenderer):
     """
     Custom renderer to ensure a consistent JSON response format.

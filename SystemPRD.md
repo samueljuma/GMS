@@ -78,3 +78,62 @@ This document outlines the database schema for a Gym Management System, detailin
 | `created_at`     | DateTime                          | Payment timestamp                      |
 
 ---
+
+
+# Gym Management System API Endpoints
+
+## 1. User Authentication & Registration
+Handles user sign-up, login, and authentication.
+
+### Endpoints:
+- **POST** `/api/auth/register/` - Registers a new user (Member, Trainer, or Admin).
+- **POST** `/api/auth/login/` - Logs in a user and returns an access token.
+- **POST** `/api/auth/refresh/` - Refreshes the authentication token.
+- **POST** `/api/auth/logout/` - Logs out the user by invalidating the token.
+- **POST** `/api/auth/reset-password/` - Sends a password reset request.
+
+## 2. User Management
+Admins and trainers can manage users (Members and Trainers).
+
+### Endpoints:
+- **POST** `/api/users/` - Create a new user (Trainer or Member). (Admin/Trainer Only)
+- **GET** `/api/users/` - Retrieve a list of all users. (Admin/Trainer Only)
+- **GET** `/api/users/<int:pk>/` - Retrieve a specific user by ID. (Admin/Trainer Only)
+- **PUT** `/api/users/<int:pk>/` - Update user details. (Admin/Trainer Only)
+- **DELETE** `/api/users/<int:pk>/` - Delete a user. (Admin Only)
+
+## 3. Membership Management
+Handles gym subscription plans and renewals.
+
+### Endpoints:
+- **GET** `/api/memberships/plans/` - Retrieve available membership plans.
+- **POST** `/api/memberships/subscribe/` - Subscribe a user to a plan. (Member/Trainer/Admin Only)
+- **GET** `/api/memberships/<int:member_id>/` - Retrieve a user's subscription details.
+- **PUT** `/api/memberships/<int:member_id>/renew/` - Renew a membership subscription.
+
+## 4. Attendance Tracking
+Records and tracks gym member attendance.
+
+### Endpoints:
+- **POST** `/api/attendance/check-in/` - Mark attendance when a member checks in. (Trainer/Admin Only)
+- **GET** `/api/attendance/history/?member_id=<int>` - Retrieve attendance records for a specific member.
+- **GET** `/api/attendance/summary/?start_date=<date>&end_date=<date>` - Get attendance reports.
+
+## 5. Payment System
+Handles manual and M-Pesa payments for subscriptions.
+
+### Endpoints:
+- **POST** `/api/payments/initiate/` - Initiate an M-Pesa payment via STK push.
+- **POST** `/api/payments/verify/` - Verify M-Pesa payment status.
+- **POST** `/api/payments/manual/` - Record a manual cash payment. (Trainer/Admin Only)
+- **GET** `/api/payments/history/?member_id=<int>` - Retrieve payment history for a user.
+
+## 6. Role-Based Access Control
+- **Admins:** Manage users, trainers, payments, and gym data.
+- **Trainers:** Manage attendance, schedules, add new members, record manual payments, and send STK push requests.
+- **Members:** View their profiles, attendance, and payments.
+
+## Authentication & Security
+- All endpoints (except registration and login) require authentication.
+- Role-based permissions determine access to certain routes.
+- JWT tokens are used for authentication and must be passed in the `Authorization: Bearer <token>` header.

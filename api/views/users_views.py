@@ -12,7 +12,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.permissions import IsAdminOrTrainer
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken    
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken  
+from datetime import datetime
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -40,10 +41,45 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)  # Raises exception if invalid
-        return Response(
-            data=serializer.validated_data,
+
+
+        # Get tokens from serializer
+        tokens = {
+            "access": serializer.validated_data["access"], 
+            "refresh": serializer.validated_data["refresh"],
+        }
+
+        response =  Response(
+            {
+                "user": serializer.validated_data["user"]
+            },
             status=status.HTTP_200_OK,
         )
+
+        # Set HttpOnly cookies
+        response.set_cookie(
+            key="Authentication",
+            value=tokens["access"],
+            httponly=True,
+            secure=True,  # Use True in production with HTTPS
+            samesite="Lax",
+            expires=datetime.fromisoformat(
+                serializer.validated_data["access_expires_at"]
+            ),
+        )
+
+        response.set_cookie(
+            key="Refresh",
+            value=tokens["refresh"],
+            httponly=True,
+            secure=True,
+            samesite="Lax",
+            expires=datetime.fromisoformat(
+                serializer.validated_data["refresh_expires_at"]
+            ),
+        )
+        
+        return response
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,7 +89,7 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        refresh_token = request.headers.get("Refresh-Token")  # Extract from headers
+        refresh_token = request.COOKIES.get("Refresh") # Extract from cookies
 
         if not refresh_token:
             raise ValidationError("Refresh token is missing")
@@ -61,10 +97,22 @@ class CustomTokenRefreshView(TokenRefreshView):
         serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
         serializer.is_valid(raise_exception=True)
 
-        return Response(
-            serializer.validated_data,
+        response = Response(
+            {"detail": "Token Refresh Successful"},
+            # serializer.validated_data, 
             status=status.HTTP_200_OK,
         )
+        
+        # Update Authentication cookie with new access token
+        response.set_cookie(
+            key="Authentication",
+            value=serializer.validated_data["access"],
+            httponly=True,
+            secure=True,
+            samesite="Lax",
+        )
+
+        return response
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,7 +121,7 @@ class LogoutView(APIView):
     # permission_classes = [IsAuthenticated] This has been set globally in settings
 
     def post(self, request):
-        refresh_token = request.headers.get("Refresh-Token")  # Extract token from headers
+        refresh_token = request.COOKIES.get("Refresh")  # Extract from cookies
 
         if not refresh_token:
             raise ValidationError({"detail": "Refresh Token is required to logout"})
@@ -85,11 +133,16 @@ class LogoutView(APIView):
         except (InvalidToken, TokenError) as e:  # Catch both exceptions
             raise ValidationError({"detail":"Token has expired or is Invalid"} )
 
-        return Response(
+        response = Response(
             {"detail": "Logout successful"},
             status=status.HTTP_205_RESET_CONTENT,
         )
 
+        # Clear cookies
+        response.delete_cookie("Authentication")
+        response.delete_cookie("Refresh")
+
+        return response
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = UserSerializer
-    authentication_classes = [JWTAuthentication]
+    # authentication_classes = [JWTAuthentication] # Has been set globally to use Cookies 
     permission_classes = [IsAdminOrTrainer]
 
     def get_queryset(self):
@@ -117,4 +170,6 @@ class UserViewSet(viewsets.ModelViewSet):
         elif user.role == "Trainer":
             return CustomUser.objects.filter(role="Member")  # Trainers see only Members
         return CustomUser.objects.none()  # Members should not see anyone
+    
+    
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------

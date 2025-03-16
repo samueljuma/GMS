@@ -23,8 +23,6 @@ def extract_error_details(data):
 def custom_exception_handler(exc, context):
     """
     Custom exception handler to standardize error responses.
-    - Uses DRF's built-in `exception_handler` for proper response handling.
-    - Enhances error structure for better readability.
     """
     response = exception_handler(exc, context)
 
@@ -35,8 +33,14 @@ def custom_exception_handler(exc, context):
     }
 
     if response is not None:
-        error_response["message"] = extract_error_details(response.data)
-        error_response["error"] = response.data.get("error", exc.__class__.__name__.replace("_", " ").title())
+        extracted_message = extract_error_details(response.data)
+        error_response["message"] = extracted_message
+
+        # Ensure response.data is a dict before accessing `.get()`
+        if isinstance(response.data, dict):
+            error_response["error"] = response.data.get("error", exc.__class__.__name__.replace("_", " ").title())
+        else:
+            error_response["error"] = exc.__class__.__name__.replace("_", " ").title()
 
         # Ensure response returns a structured error
         response.data = error_response
@@ -46,5 +50,6 @@ def custom_exception_handler(exc, context):
         response = Response(error_response, status=500)
 
     return response
+
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------

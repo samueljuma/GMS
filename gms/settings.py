@@ -60,8 +60,9 @@ ROOT_URLCONF = "gms.urls"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "api.authentication.CookieJWTAuthentication",  # Use custom authentication class that gets tokens from cookies
     ),
+    
     "EXCEPTION_HANDLER": "api.utils.custom_exception_handler",  # Custom Exception Handler
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",  # Requires authentication by default
@@ -78,8 +79,8 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS256",  # Default signing algorithm
     "SIGNING_KEY": SECRET_KEY,  # Uses Django's SECRET_KEY for signing
     "VERIFYING_KEY": None,
-    "USER_ID_FIELD": "id",  
-    "USER_ID_CLAIM": "user_id",  
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 
@@ -110,9 +111,9 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "gms",
         "USER": "root",
-        "PASSWORD": "sj_root",  
-        "HOST": "localhost",  
-        "PORT": "3306", 
+        "PASSWORD": "sj_root",
+        "HOST": "localhost",
+        "PORT": "3306",
     }
 }
 

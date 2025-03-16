@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.exceptions import ValidationError
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class CustomUserManager(BaseUserManager):
@@ -31,10 +32,13 @@ class CustomUser(AbstractUser):
         ("Trainer", "Trainer"),
         ("Member", "Member"),
     ]
-    email = models.EmailField(unique=True, blank=False, null=False) 
+    email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="Member")
     dob = models.DateField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
+    phone_number = PhoneNumberField(region= "KE", blank=True, null=True) # Default to region Kenya
+    emergency_contact = PhoneNumberField(region= "KE", blank=True, null=True)
+    added_by = models.ForeignKey("self", on_delete=models.SET_NULL , null=True, blank=True)
 
     objects = CustomUserManager()  # Use the custom manager
 

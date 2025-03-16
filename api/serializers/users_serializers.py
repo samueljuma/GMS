@@ -5,20 +5,29 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import CustomUser
 from datetime import datetime, timezone
 
+
+class AddedBySerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = CustomUser
+        fields = ["id", "username", "first_name", "last_name", "role"]
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the CustomUser model, using CustomUserManager for password handling."""
     
     password = serializers.CharField(write_only=True, required=False)
+    added_by = AddedBySerializer(read_only = True)
 
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "first_name", "last_name", "email", "role", "dob", "profile_picture", "password",]
+        fields = ["id", "username", "first_name", "last_name", "email", "role", "dob", "profile_picture", "password", "phone_number", "emergency_contact", "added_by"]
         extra_kwargs = {
-            "role": {"read_only": True},  # Prevent users from modifying their role
+            # "role": {"read_only": True},  # Prevent users from modifying their role
+            "added_by": {"read_only": True}  # Prevents users from manually setting this field
         }
 
     def create(self, validated_data):
         """Use CustomUserManager to handle user creation and password hashing."""
+        request = self.context["request"]
+        validated_data["added_by"] = request.user  # Automatically sets the logged-in user as `added_by`
         return CustomUser.objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
@@ -39,7 +48,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "first_name", "last_name", "email", "password", "role", "dob", "profile_picture",]
+        fields = ["id", "username", "first_name", "last_name", "email", "password", "role", "dob", "profile_picture", "phone_number", "emergency_contact", "added_by"]
         extra_kwargs = {"role": {"required": False}}  # Role is optional
 
     def create(self, validated_data):

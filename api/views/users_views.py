@@ -117,19 +117,4 @@ class UserViewSet(viewsets.ModelViewSet):
         elif user.role == "Trainer":
             return CustomUser.objects.filter(role="Member")  # Trainers see only Members
         return CustomUser.objects.none()  # Members should not see anyone
-
-    def perform_create(self, serializer):
-        """
-        - Admins can create both Trainers and Members.
-        - Trainers can only create Members.
-        """
-        role = serializer.validated_data.get("role", "Member")
-
-        if self.request.user.role == "Trainer" and role != "Member":
-            raise serializers.ValidationError(
-                {"role": "Trainers can only create Members."}
-            )
-
-        serializer.save()
-
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------

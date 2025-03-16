@@ -8,13 +8,13 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     # Show these fields in the list view
-    list_display = ("username", "email", "role", "dob", "profile_picture_preview", "is_staff", "is_superuser", "is_active")
+    list_display = ("username", "email", "role", "dob", "profile_picture_preview", "phone_number", "emergency_contact", "added_by", "is_staff", "is_superuser", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
 
     # Define the form layout when editing a user
     fieldsets = (
         (None, {"fields": ("username", "email", "password")}),
-        ("Personal Info", {"fields": ("first_name", "last_name", "dob", "profile_picture")}),
+        ("Personal Info", {"fields": ("first_name", "last_name", "dob", "profile_picture", "phone_number", "emergency_contact", "added_by")}),
         ("Permissions", {"fields": ("role", "is_staff", "is_superuser", "is_active", "groups", "user_permissions")}),
         ("Important Dates", {"fields": ("last_login", "date_joined")}),
     )
@@ -23,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("username", "email", "password1", "password2", "role", "dob", "profile_picture"),
+            "fields": ("username", "email", "password1", "password2", "role", "dob", "profile_picture",  "phone_number", "emergency_contact", "added_by"),
         }),
     )
 

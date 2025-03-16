@@ -8,18 +8,19 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ## 1. Users Table (Enhanced for Scalability & Role Management)
 
-| Column            | Type                          | Description                     |
-| ----------------- | ----------------------------- | ------------------------------- |
-| `id`              | Primary Key                   | Unique identifier for each user |
-| `username`        | String (Unique)               | Used for login                  |
-| `email`           | String (Unique)               | Email for communication         |
-| `phone_number`    | String (Unique)               | Used for M-Pesa transactions    |
-| `role`            | Enum (Admin, Trainer, Member) | Defines user permissions        |
-| `profile_picture` | String (Nullable)             | Profile image URL               |
-| `dob`             | Date (Nullable)               | Date of birth                   |
-| `password`        | String (Hashed)               | Secure password storage         |
-| `created_at`      | DateTime                      | User registration timestamp     |
-| `updated_at`      | DateTime                      | Last profile update             |
+| Column            | Type                          | Description                                                             |
+| ----------------- | ----------------------------- | ----------------------------------------------------------------------- |
+| `id`              | Primary Key                   | Unique identifier for each user                                         |
+| `username`        | String (Unique)               | Used for login                                                          |
+| `email`           | String (Unique)               | Email for communication                                                 |
+| `phone_number`    | String (Unique)               | Used for M-Pesa transactions                                            |
+| `role`            | Enum (Admin, Trainer, Member) | Defines user permissions                                                |
+| `profile_picture` | String (Nullable)             | Profile image URL                                                       |
+| `dob`             | Date (Nullable)               | Date of birth                                                           |
+| `password`        | String (Hashed)               | Secure password storage                                                 |
+| `created_at`      | DateTime                      | User registration timestamp                                             |
+| `updated_at`      | DateTime                      | Last profile update                                                     |
+| `added_by`        | Foreign Key (Users, Nullable) | ID of the user who added this user (Nullable for self-registered users) |
 
 ---
 
@@ -46,7 +47,6 @@ This document outlines the database schema for a Gym Management System, detailin
 | `name`          | String (Unique) | Plan name (Daily, Monthly, Yearly, etc.) |
 | `price`         | Decimal(10,2)   | Cost of the plan                         |
 | `duration_days` | Integer         | Number of days the plan lasts            |
-
 
 ---
 

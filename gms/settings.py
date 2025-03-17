@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",  # Enable Token Blacklisting
+    "django_filters", # For filtering
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,11 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",  # Requires authentication by default
     ),
     "DEFAULT_RENDERER_CLASSES": ["api.utils.renderers.CustomJSONRenderer"],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",  # Filtering
+        "rest_framework.filters.SearchFilter",  # Searching
+        "rest_framework.filters.OrderingFilter",  # Ordering
+    ],
 }
 
 SIMPLE_JWT = {

@@ -233,3 +233,47 @@ class LoginView(APIView):
 - ✅ **Use HTTPS (Don't allow HTTP in production!)**
 
 ---
+
+
+## Filtering, Searching and Ordering
+- For FIltering, you need to install `django_filters` using `pip install django-filter` and include it installed apps 
+```python
+INSTALLED_APPS = [
+    ...
+    "django_filters",
+]
+```
+
+- Ordering and searching are already supported in DRF - no installations required 
+- Default filter backends can be set globally in `settings.py`
+```py
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",  # Filtering
+        "rest_framework.filters.SearchFilter",  # Searching
+        "rest_framework.filters.OrderingFilter",  # Ordering
+    ]
+}
+```
+
+- Set up your views to use `filtering, ordering and searching`
+
+```py
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics
+from .models import Book
+from .serializers import BookSerializer
+
+class BookListView(generics.ListAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    
+    filter_backends = [rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter] # Not needed since they've been set globally
+    filterset_fields = ['title', 'author', 'publication_year']  # Enable filtering
+    search_fields = ['title', 'author__name']  # Enable search
+    ordering_fields = ['title', 'publication_year']  # Enable ordering
+```
+
+- `Filtering` is best for `exact matches` (e.g., ?role=Trainer&dob__gte=1990-01-01).
+- `Searching` is best for `fuzzy text searches` (e.g., ?search=John).
+- `Ordering` allows `sorting` of results (e.g., ?ordering=-dob to get youngest users first).

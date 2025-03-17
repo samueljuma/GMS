@@ -157,6 +157,11 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     # authentication_classes = [JWTAuthentication] # Has been set globally to use Cookies 
     permission_classes = [IsAdminOrTrainer]
+    
+    filterset_fields = ["role","username", "email", "dob"]
+    search_fields = ["username", "first_name", "last_name" ]
+    ordering_fields = ["id", "username", "role", "dob"]
+    ordering = ["id"]
 
     def get_queryset(self):
         """

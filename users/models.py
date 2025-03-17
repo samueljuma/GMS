@@ -38,7 +38,22 @@ class CustomUser(AbstractUser):
     profile_picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
     phone_number = PhoneNumberField(region= "KE", blank=True, null=True) # Default to region Kenya
     emergency_contact = PhoneNumberField(region= "KE", blank=True, null=True)
-    added_by = models.ForeignKey("self", on_delete=models.SET_NULL , null=True, blank=True)
+    self_registered = models.BooleanField(default=True)
+    added_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="added_users",  # Allows reverse lookup
+    )
+    approved_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="approved_users",  # Allows reverse lookup
+    )
 
     objects = CustomUserManager()  # Use the custom manager
 

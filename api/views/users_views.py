@@ -28,7 +28,10 @@ class RegisterView(APIView):
 
         user = serializer.save()
         return Response(
-            data={"user": serializer.data},  # Returning user details
+            data={
+                "message": "Registration Successful - Awaiting Approval" ,
+                "user": serializer.data
+            }, 
             status=status.HTTP_201_CREATED,
         )
 

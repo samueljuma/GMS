@@ -9,7 +9,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.permissions import IsAdminOrTrainer
+from api.utils.permissions import IsAdminOrTrainer
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken  

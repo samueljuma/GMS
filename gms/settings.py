@@ -53,21 +53,20 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "api.middlewares.RequestTimerMiddleware",  # Middleware to track request processing time.
+    "api.utils.middlewares.RequestTimerMiddleware",  # Middleware to track request processing time.
 ]
 
 ROOT_URLCONF = "gms.urls"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "api.authentication.CookieJWTAuthentication",  # Use custom authentication class that gets tokens from cookies
+        "api.utils.authentication.CookieJWTAuthentication",  # Use custom authentication class that gets tokens from cookies
     ),
-    
-    "EXCEPTION_HANDLER": "api.utils.custom_exception_handler",  # Custom Exception Handler
+    "EXCEPTION_HANDLER": "api.utils.exception_handler.custom_exception_handler",  # Custom Exception Handler
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",  # Requires authentication by default
     ),
-    "DEFAULT_RENDERER_CLASSES": ["api.renderers.CustomJSONRenderer"],
+    "DEFAULT_RENDERER_CLASSES": ["api.utils.renderers.CustomJSONRenderer"],
 }
 
 SIMPLE_JWT = {

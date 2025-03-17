@@ -1,4 +1,5 @@
 from rest_framework import permissions
+
 class IsAdminOrTrainer(permissions.BasePermission):
     """
     Custom permission to allow:

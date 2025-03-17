@@ -14,6 +14,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken  
 from datetime import datetime
+from api.utils.filters import UserFilter
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -158,7 +159,7 @@ class UserViewSet(viewsets.ModelViewSet):
     # authentication_classes = [JWTAuthentication] # Has been set globally to use Cookies 
     permission_classes = [IsAdminOrTrainer]
     
-    filterset_fields = ["role","username", "email", "dob"]
+    filterset_class = UserFilter
     search_fields = ["username", "first_name", "last_name" ]
     ordering_fields = ["id", "username", "role", "dob"]
     ordering = ["id"]

@@ -6,7 +6,7 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ---
 
-## 1. Users Table (Enhanced for Scalability & Role Management)
+## 1. Users Table
 
 | Column            | Type                          | Description                                                             |
 | ----------------- | ----------------------------- | ----------------------------------------------------------------------- |
@@ -21,10 +21,12 @@ This document outlines the database schema for a Gym Management System, detailin
 | `created_at`      | DateTime                      | User registration timestamp                                             |
 | `updated_at`      | DateTime                      | Last profile update                                                     |
 | `added_by`        | Foreign Key (Users, Nullable) | ID of the user who added this user (Nullable for self-registered users) |
+| `approved_by`     | Foreign Key (Users, Nullable) | ID of the user who approved this user                                   |
+| `self_registered` | Boolean (Users, default=True) | Whether user is self-registered                                         |
 
 ---
 
-## 2. Membership Table (Improved for Plan Flexibility)
+## 2. Membership Table 
 
 | Column       | Type                              | Description                   |
 | ------------ | --------------------------------- | ----------------------------- |
@@ -39,7 +41,7 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ---
 
-## 3. Plans Table (NEW for Managing Subscription Plans)
+## 3. Plans Table
 
 | Column          | Type            | Description                              |
 | --------------- | --------------- | ---------------------------------------- |
@@ -50,7 +52,7 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ---
 
-## 4. Attendance Table (Optimized for Daily Presence Tracking)
+## 4. Attendance Table
 
 | Column           | Type                | Description                            |
 | ---------------- | ------------------- | -------------------------------------- |
@@ -64,7 +66,7 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ---
 
-## 5. Payments Table (Enhanced for Payment Tracking & Verification)
+## 5. Payments Table
 
 | Column           | Type                              | Description                            |
 | ---------------- | --------------------------------- | -------------------------------------- |
@@ -79,13 +81,14 @@ This document outlines the database schema for a Gym Management System, detailin
 
 ---
 
-
 # Gym Management System API Endpoints
 
 ## 1. User Authentication & Registration
+
 Handles user sign-up, login, and authentication.
 
 ### Endpoints:
+
 - **POST** `/api/auth/register/` - Registers a new user (Member, Trainer, or Admin).
 - **POST** `/api/auth/login/` - Logs in a user and returns an access token.
 - **POST** `/api/auth/refresh/` - Refreshes the authentication token.
@@ -93,9 +96,11 @@ Handles user sign-up, login, and authentication.
 - **POST** `/api/auth/reset-password/` - Sends a password reset request.
 
 ## 2. User Management
+
 Admins and trainers can manage users (Members and Trainers).
 
 ### Endpoints:
+
 - **POST** `/api/users/` - Create a new user (Trainer or Member). (Admin/Trainer Only)
 - **GET** `/api/users/` - Retrieve a list of all users. (Admin/Trainer Only)
 - **GET** `/api/users/<int:pk>/` - Retrieve a specific user by ID. (Admin/Trainer Only)
@@ -103,37 +108,45 @@ Admins and trainers can manage users (Members and Trainers).
 - **DELETE** `/api/users/<int:pk>/` - Delete a user. (Admin Only)
 
 ## 3. Membership Management
+
 Handles gym subscription plans and renewals.
 
 ### Endpoints:
+
 - **GET** `/api/memberships/plans/` - Retrieve available membership plans.
 - **POST** `/api/memberships/subscribe/` - Subscribe a user to a plan. (Member/Trainer/Admin Only)
 - **GET** `/api/memberships/<int:member_id>/` - Retrieve a user's subscription details.
 - **PUT** `/api/memberships/<int:member_id>/renew/` - Renew a membership subscription.
 
 ## 4. Attendance Tracking
+
 Records and tracks gym member attendance.
 
 ### Endpoints:
+
 - **POST** `/api/attendance/check-in/` - Mark attendance when a member checks in. (Trainer/Admin Only)
 - **GET** `/api/attendance/history/?member_id=<int>` - Retrieve attendance records for a specific member.
 - **GET** `/api/attendance/summary/?start_date=<date>&end_date=<date>` - Get attendance reports.
 
 ## 5. Payment System
+
 Handles manual and M-Pesa payments for subscriptions.
 
 ### Endpoints:
+
 - **POST** `/api/payments/initiate/` - Initiate an M-Pesa payment via STK push.
 - **POST** `/api/payments/verify/` - Verify M-Pesa payment status.
 - **POST** `/api/payments/manual/` - Record a manual cash payment. (Trainer/Admin Only)
 - **GET** `/api/payments/history/?member_id=<int>` - Retrieve payment history for a user.
 
 ## 6. Role-Based Access Control
+
 - **Admins:** Manage users, trainers, payments, and gym data.
 - **Trainers:** Manage attendance, schedules, add new members, record manual payments, and send STK push requests.
 - **Members:** View their profiles, attendance, and payments.
 
 ## Authentication & Security
+
 - All endpoints (except registration and login) require authentication.
 - Role-based permissions determine access to certain routes.
-- JWT tokens are used for authentication and must be passed in the `Authorization: Bearer <token>` header.
+- JWT tokens are used for authentication and must be passed in the request via `cookies` header.

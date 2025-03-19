@@ -3,9 +3,11 @@ from api.views.users_views import RegisterView, LoginView, CustomTokenRefreshVie
 from rest_framework.routers import DefaultRouter
 from rest_framework.routers import DefaultRouter
 from api.views.users_views import UserViewSet
+from api.views.subscriptions_views import PlanViewSet
 
 router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="user")
+router.register(r"subscriptions/plans", PlanViewSet, basename="plan")
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),

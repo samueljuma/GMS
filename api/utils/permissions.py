@@ -46,3 +46,22 @@ class IsAdminOrTrainer(permissions.BasePermission):
 
         return False  # Deny access otherwise
 
+class IsAdminForPlans(permissions.BasePermission):
+    """
+    Custom permission for managing subscription plans:
+    - Admins can create, update, and delete plans.
+    - Trainers and Members can only view available plans.
+    - Guests cannot access.
+    """
+
+    def has_permission(self, request, view):
+        """Global permission checks before accessing any object."""
+        if not request.user.is_authenticated:
+            return False # Unauthenticted Users Cannot access
+
+        # Allow everyone (Admins, Trainers, Members) to view plans (GET, HEAD, OPTIONS)
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Allow only Admins to create, update, or delete plans
+        return request.user.role == "Admin"

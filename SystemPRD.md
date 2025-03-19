@@ -113,10 +113,10 @@ Handles gym subscription plans and renewals.
 
 ### Endpoints:
 
-- **GET** `/api/memberships/plans/` - Retrieve available membership plans.
-- **POST** `/api/memberships/subscribe/` - Subscribe a user to a plan. (Member/Trainer/Admin Only)
-- **GET** `/api/memberships/<int:member_id>/` - Retrieve a user's subscription details.
-- **PUT** `/api/memberships/<int:member_id>/renew/` - Renew a membership subscription.
+- **GET** `/api/subscriptions/plans/` - Retrieve available membership plans.
+- **POST** `/api/subscriptions/subscribe/` - Subscribe a member to a plan
+- **GET** `/api/subscriptions/<int:member_id>/` - Retrieve a user's subscription details.
+- **PUT** `/api/subscriptions/<int:member_id>/renew/` - Renew a membership subscription.
 
 ## 4. Attendance Tracking
 

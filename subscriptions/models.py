@@ -1,7 +1,6 @@
 from django.db import models
 from users.models import CustomUser
 
-
 class Plan(models.Model):
     PLAN_CHOICES = [
         ("daily", "Daily"),
@@ -29,9 +28,13 @@ class Subscription(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Active")
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
+
     def __str__(self):
         return f"{self.member.username} - {self.plan.name} ({self.status})"
-

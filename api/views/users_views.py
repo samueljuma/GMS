@@ -107,7 +107,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         serializer.is_valid(raise_exception=True)
 
         response = Response(
-            {"detail": "Token Refresh Successful"},
+            # {"detail": "Token Refresh Successful"},
             # serializer.validated_data,
             status=status.HTTP_200_OK,
         )

@@ -290,3 +290,14 @@ ngrok http 8000
 ```
 - Now use the public url
 > Forwarding  https://random-id.ngrok.io -> http://127.0.0.1:8000
+
+
+---
+### Solving failed migrations
+```bash 
+$ python manage.py migrate --fake app_name zero
+
+$ python manage.py makemigrations
+
+$ python manage.py migrate app_name 0001
+```

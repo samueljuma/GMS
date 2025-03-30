@@ -27,3 +27,17 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.id} - {self.member.username} ({self.status})"
+
+class MpesaTransaction(models.Model):
+    merchant_request_id = models.CharField(max_length=100)
+    checkout_request_id = models.CharField(max_length=100)
+    result_code = models.IntegerField()
+    result_desc = models.TextField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    mpesa_receipt_number = models.CharField(max_length=50, null=True, blank=True)
+    transaction_date = models.BigIntegerField(null=True, blank=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+    timestamp = models.TimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Transaction {self.mpesa_receipt_number or 'Failed'} - {self.result_desc}"

@@ -277,3 +277,16 @@ class BookListView(generics.ListAPIView):
 - `Filtering` is best for `exact matches` (e.g., ?role=Trainer&dob__gte=1990-01-01).
 - `Searching` is best for `fuzzy text searches` (e.g., ?search=John).
 - `Ordering` allows `sorting` of results (e.g., ?ordering=-dob to get youngest users first).
+
+### Using nggrok to expose server to the internet. i.e testing for stkpush safaricom
+- Expose Local Server to the Internet Using Ngrok - You need to sign up to ngrok to get auth-token
+```bash
+pip install pyngrok
+ngrok config add-authtoken YOUR_AUTH_TOKEN 
+
+python manage.py runserver
+ngrok http 8000
+
+```
+- Now use the public url
+> Forwarding  https://random-id.ngrok.io -> http://127.0.0.1:8000

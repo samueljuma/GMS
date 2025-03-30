@@ -13,9 +13,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,7 +31,7 @@ SECRET_KEY = "django-insecure-a&g$cb8%p%r*p2bgd^&snocvztf^4o^sn1$_52%v=o4fal1&py
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -45,7 +49,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",  # Enable Token Blacklisting
     "django_filters",  # For filtering
     "subscriptions.apps.SubscriptionsConfig",
-    "payments.apps.PaymentsConfig"
+    "payments.apps.PaymentsConfig",
 ]
 
 MIDDLEWARE = [
@@ -170,3 +174,13 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+MPESA_ENV = env("MPESA_ENV", default="sandbox")  # or 'production'
+MPESA_CONSUMER_KEY = env("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_SECRET = env("MPESA_CONSUMER_SECRET")
+MPESA_SHORTCODE = env("MPESA_SHORTCODE")
+MPESA_PASSKEY = env("MPESA_PASSKEY")
+MPESA_CALLBACK_URL = env("MPESA_CALLBACK_URL")
+ACCESS_TOKEN_URL = env("ACCESS_TOKEN_URL")
+STK_PUSH_URL = env("STK_PUSH_URL")

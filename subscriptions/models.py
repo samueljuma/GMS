@@ -22,8 +22,6 @@ class Subscription(models.Model):
         ("Expired", "Expired"),
         ("Cancelled", "Cancelled"),
     ]
-
-    member = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="member_subscriptions")
     plan = models.ForeignKey(Plan, on_delete=models.PROTECT, related_name="plan_subscriptions")
     start_date = models.DateField()
     end_date = models.DateField()
@@ -37,4 +35,4 @@ class Subscription(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.member.username} - {self.plan.name} ({self.status})"
+        return f"{self.plan.name} ({self.status})"

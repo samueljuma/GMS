@@ -303,4 +303,14 @@ $ python manage.py migrate --fake app_name zero
 $ python manage.py makemigrations
 
 $ python manage.py migrate app_name 0001
+
+
+Alternatively
+- Delete migrations ralated to the app from django-migrations table then run
+python manage.py migrate payments zero --fake
+python manage.py makemigrations payments
+python manage.py migrate payments --fake-initial
+
+
 ```
+

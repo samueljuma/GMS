@@ -4,7 +4,7 @@ from api.views.payments_views import MpesaSTKPushView, mpesa_callback, FetchMpes
 from rest_framework.routers import DefaultRouter
 from rest_framework.routers import DefaultRouter
 from api.views.users_views import UserViewSet
-from api.views.subscriptions_views import PlanViewSet
+from api.views.subscriptions_views import PlanViewSet, FetchSubscriptions
 
 router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="user")
@@ -19,4 +19,5 @@ urlpatterns = [
     path("mpesa/stkpush/", MpesaSTKPushView.as_view(), name="mpesa_stkpush"),
     path("mpesa/callback/", mpesa_callback, name="mpesa_callback"),
     path("mpesa/transactions/", FetchMpesaTransactionView.as_view(), name="fetch-mpesa-transactions"),
+    path("subscriptions/", FetchSubscriptions.as_view(), name="subscriptions")
 ]

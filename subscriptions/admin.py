@@ -10,6 +10,6 @@ class PlanAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("member", "plan", "status", "start_date", "end_date")
+    list_display = ("plan", "status", "start_date", "end_date")
     list_filter = ("status", "plan")
-    search_fields = ("member__username", "plan__name")
+    search_fields = ("plan__name",)

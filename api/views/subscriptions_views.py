@@ -1,9 +1,9 @@
 from api.utils.permissions import IsAdminForPlans
-from api.serializers.subscriptions_serializers import PlanSerializer
-from rest_framework import viewsets
+from api.serializers.subscriptions_serializers import PlanSerializer, SubscriptionSerializer
+from rest_framework import viewsets, permissions
 from subscriptions.models import Plan, Subscription
 from django.db.models import ProtectedError
-from rest_framework import serializers
+from rest_framework import serializers, generics
 
 
 class PlanViewSet(viewsets.ModelViewSet):
@@ -26,3 +26,8 @@ class PlanViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(
                 "Cannot delete this plan because it has subscriptions associated to it."
             )
+
+class FetchSubscriptions(generics.ListAPIView): 
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [permissions.IsAdminUser]

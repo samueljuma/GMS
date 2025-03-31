@@ -120,7 +120,7 @@ WSGI_APPLICATION = "gms.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "gms",
+        "NAME": "gmsv2",
         "USER": "root",
         "PASSWORD": "sj_root",
         "HOST": "localhost",

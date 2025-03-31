@@ -15,12 +15,10 @@ class MemberSerailizer(ModelSerializer):
   
 
 class SubscriptionSerializer(ModelSerializer):
-  plan = PlanSerializer()
-  member = MemberSerailizer()
-  
+  plan = PlanSerializer(read_only=True)
   class Meta:
     model = Subscription
-    fields = ["member", "plan", "start_date", "end_date", "status", "created_at", "updated_at"]
+    fields = ["id","plan", "start_date", "end_date", "status", "created_at", "updated_at"]
   
   
     

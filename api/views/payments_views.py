@@ -7,7 +7,7 @@ from rest_framework.response import Response
 import json
 from payments.models import MpesaTransaction
 from rest_framework import generics
-from api.serializers.payments_serializers import MpesaTransactionSerializer
+from api.serializers.payments_serializers import MpesaTransactionSerializer, PaymentsRequestPayLoadSerializer
 from rest_framework import filters
 from api.utils import helpers
 from django.views.decorators.csrf import csrf_exempt
@@ -17,10 +17,14 @@ class MpesaSTKPushView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        phone_number = request.data.get("phone_number")
-        amount = request.data.get("amount")
+
+        serializer = PaymentsRequestPayLoadSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+
+        phone_number = serializer.validated_data["phone_number"]
+        amount = serializer.validated_data["amount"]
         account_reference = helpers.generate_reference()
-        transaction_desc = request.data.get("description")
+        transaction_desc = serializer.validated_data["description"]
 
         if not transaction_desc:
             transaction_desc = "Payment for services"

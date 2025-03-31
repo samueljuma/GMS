@@ -287,6 +287,9 @@ ngrok config add-authtoken YOUR_AUTH_TOKEN
 python manage.py runserver
 ngrok http 8000
 
+Alternative to this is localtunnel
+https://theboroer.github.io/localtunnel-www/
+
 ```
 - Now use the public url
 > Forwarding  https://random-id.ngrok.io -> http://127.0.0.1:8000

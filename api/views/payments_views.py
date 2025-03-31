@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from api.utils.mpesa_client import MpesaClient
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 import json
 from payments.models import MpesaTransaction
@@ -51,8 +51,10 @@ class MpesaSTKPushView(APIView):
 
         return Response(response, status=200)
 
+
 @csrf_exempt
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def mpesa_callback(request):
     data = request.data
     print("M-Pesa Callback Received:", data)  # Debugging
@@ -65,11 +67,12 @@ def mpesa_callback(request):
 
         # Get transaction from db
         transaction = transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
-        
+
         transaction.result_code = result_code
         transaction.result_desc = result_desc
 
         if result_code == 0:
+            print("Processing successful payment")
 
             transaction.status = "Completed"
 
@@ -84,15 +87,20 @@ def mpesa_callback(request):
                 elif item["Name"] == "PhoneNumber":
                     transaction.phone_number = str(item["Value"])
             transaction.save()
-            
+            print("Transaction saved as Completed")
+
             transaction_data = MpesaTransactionSerializer(transaction).data
 
             return Response({"transaction_details": transaction_data}, status=200)
         else:
+            print("Processing failed payment")
             transaction.status = "Failed"
             transaction.save()
-            
+
             return Response({"error": "Payment failed", "message": result_desc}, status=400)
+    except MpesaTransaction.DoesNotExist:
+        print(f"Transaction with CheckoutRequestID {checkout_request_id} not found")
+        return Response({"error": "Transaction not found", "message": "No such transaction"}, status=400)
 
     except Exception as e:
         print("Error processing M-Pesa callback:", str(e))
@@ -105,4 +113,4 @@ class FetchMpesaTransactionView(generics.ListAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = MpesaTransactionSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ["phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]
+    search_fields = ["id","phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]

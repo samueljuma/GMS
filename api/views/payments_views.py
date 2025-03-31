@@ -9,6 +9,8 @@ from payments.models import MpesaTransaction
 from rest_framework import generics
 from api.serializers.payments_serializers import MpesaTransactionSerializer
 from rest_framework import filters
+from api.utils import helpers
+from django.views.decorators.csrf import csrf_exempt
 
 
 class MpesaSTKPushView(APIView):
@@ -17,8 +19,11 @@ class MpesaSTKPushView(APIView):
     def post(self, request):
         phone_number = request.data.get("phone_number")
         amount = request.data.get("amount")
-        account_reference = "Test Payment"
-        transaction_desc = "Payment for services"
+        account_reference = helpers.generate_reference()
+        transaction_desc = request.data.get("description")
+
+        if not transaction_desc:
+            transaction_desc = "Payment for services"
 
         if not phone_number or not amount:
             return Response(
@@ -31,9 +36,22 @@ class MpesaSTKPushView(APIView):
         if "error" in response:
             return Response(response, status=400)
 
+        response_code = response.get("ResponseCode")
+        checkout_request_id = response.get("CheckoutRequestID")
+        merchant_request_id = response.get("MerchantRequestID")
+        if response_code == "0":
+            MpesaTransaction.objects.create(
+                merchant_request_id=merchant_request_id,
+                checkout_request_id=checkout_request_id,
+                reference=account_reference, 
+                phone_number=phone_number,
+                amount=amount,
+                description = transaction_desc,
+            )
+
         return Response(response, status=200)
 
-
+@csrf_exempt
 @api_view(["POST"])
 def mpesa_callback(request):
     data = request.data
@@ -41,50 +59,40 @@ def mpesa_callback(request):
 
     try:
         callback_data = data.get("Body", {}).get("stkCallback", {})
-
-        merchant_request_id = callback_data.get("MerchantRequestID")
         checkout_request_id = callback_data.get("CheckoutRequestID")
         result_code = callback_data.get("ResultCode")
         result_desc = callback_data.get("ResultDesc")
 
-        # Extract optional fields if present
-        amount = None
-        mpesa_receipt_number = None
-        transaction_date = None
-        phone_number = None
+        # Get transaction from db
+        transaction = transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
+        
+        transaction.result_code = result_code
+        transaction.result_desc = result_desc
 
         if result_code == 0:
+
+            transaction.status = "Completed"
+
             metadata = callback_data.get("CallbackMetadata", {}).get("Item", [])
             for item in metadata:
                 if item["Name"] == "Amount":
-                    amount = item["Value"]
+                    transaction.amount = item["Value"]
                 elif item["Name"] == "MpesaReceiptNumber":
-                    mpesa_receipt_number = item["Value"]
+                    transaction.mpesa_receipt_number = item["Value"]
                 elif item["Name"] == "TransactionDate":
-                    transaction_date = item["Value"]
+                    transaction.transaction_date = item["Value"]
                 elif item["Name"] == "PhoneNumber":
-                    phone_number = item["Value"]
+                    transaction.phone_number = str(item["Value"])
+            transaction.save()
+            
+            transaction_data = MpesaTransactionSerializer(transaction).data
 
-        # Save transaction to database
-        transaction = MpesaTransaction.objects.create(
-            merchant_request_id=merchant_request_id,
-            checkout_request_id=checkout_request_id,
-            result_code=result_code,
-            result_desc=result_desc,
-            amount=amount,
-            mpesa_receipt_number=mpesa_receipt_number,
-            transaction_date=transaction_date,
-            phone_number=phone_number,
-        )
-        
-        # Serialize transaction details
-        transaction_data = MpesaTransactionSerializer(transaction).data
-
-        # Return appropriate response code based on success or failure
-        if result_code == 0:
-            return Response({"transaction_details": transaction_data}, status=200)  # ✅ Success
+            return Response({"transaction_details": transaction_data}, status=200)
         else:
-            return Response({"error": "Payment failed", "message": result_desc}, status=400) 
+            transaction.status = "Failed"
+            transaction.save()
+            
+            return Response({"error": "Payment failed", "message": result_desc}, status=400)
 
     except Exception as e:
         print("Error processing M-Pesa callback:", str(e))
@@ -97,4 +105,4 @@ class FetchMpesaTransactionView(generics.ListAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = MpesaTransactionSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ["phone_number", "transaction_date", "mpesa_receipt_number"]
+    search_fields = ["phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]

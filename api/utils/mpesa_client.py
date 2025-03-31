@@ -10,7 +10,7 @@ class MpesaClient:
 
     def get_access_token(self):
         # url = settings.ACCESS_TOKEN_URL
-        
+
         url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 
         # Make the request with Basic Auth
@@ -40,7 +40,7 @@ class MpesaClient:
                 return {"error": "Failed to get access token"}
 
             # url = settings.STK_PUSH_URL
-          
+
             url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
             headers = {
                 "Authorization": f"Bearer {access_token}",
@@ -61,7 +61,7 @@ class MpesaClient:
                 "PartyA": phone_number,
                 "PartyB": settings.MPESA_SHORTCODE,
                 "PhoneNumber": phone_number,
-                "CallBackURL": settings.MPESA_CALLBACK_URL,
+                "CallBackURL": "https://dbb8-102-213-49-11.ngrok-free.app/api/mpesa/callback/",
                 "AccountReference": account_reference,
                 "TransactionDesc": transaction_desc,
             }

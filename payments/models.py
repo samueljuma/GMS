@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import CustomUser
 from subscriptions.models import Subscription
+from phonenumber_field.modelfields import PhoneNumberField
 
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
@@ -31,13 +32,16 @@ class Payment(models.Model):
 class MpesaTransaction(models.Model):
     merchant_request_id = models.CharField(max_length=100)
     checkout_request_id = models.CharField(max_length=100)
-    result_code = models.IntegerField()
-    result_desc = models.TextField()
+    status = models.CharField(max_length=20, default="Pending")
+    result_code = models.IntegerField(null=True)
+    result_desc = models.TextField(null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    reference = models.CharField(max_length=50, blank=True)
+    description = models.TextField(null=True, blank=True)
     mpesa_receipt_number = models.CharField(max_length=50, null=True, blank=True)
     transaction_date = models.BigIntegerField(null=True, blank=True)
-    phone_number = models.CharField(max_length=15, null=True, blank=True)
-    timestamp = models.TimeField(auto_now_add=True)
+    phone_number = PhoneNumberField(region= "KE", blank=True, null=True) # Default to region Kenya
+    timestamp = models.TimeField(auto_now=True)
 
     def __str__(self):
         return f"Transaction {self.mpesa_receipt_number or 'Failed'} - {self.result_desc}"

@@ -16,7 +16,7 @@ urlpatterns = [
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),  # Refresh Token
     path("", include(router.urls)), 
     path("auth/logout/", LogoutView.as_view(), name="logout"),
-    path("mpesa/stkpush/", MpesaSTKPushView.as_view(), name="mpesa_stkpush"),
+    path("payments/initiate-payment/", MpesaSTKPushView.as_view(), name="mpesa_stkpush"),
     path("mpesa/callback/", mpesa_callback, name="mpesa_callback"),
     path("mpesa/transactions/", FetchMpesaTransactionView.as_view(), name="fetch-mpesa-transactions"),
     path("subscriptions/", FetchSubscriptions.as_view(), name="subscriptions")

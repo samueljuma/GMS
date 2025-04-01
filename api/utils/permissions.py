@@ -65,3 +65,10 @@ class IsAdminForPlans(permissions.BasePermission):
 
         # Allow only Admins to create, update, or delete plans
         return request.user.role == "Admin"
+    
+class IsStaff(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False  # Unauthenticted Users Cannot access
+        
+        return request.user.role in ["Admin", "Trainer"]

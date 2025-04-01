@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from api.utils.mpesa_client import MpesaClient
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-import json
+from api.utils.permissions import IsStaff
 from payments.models import MpesaTransaction
-from rest_framework import generics
+from rest_framework import generics, status
 from api.serializers.payments_serializers import MpesaTransactionSerializer, PaymentsRequestPayLoadSerializer
 from rest_framework import filters
 from api.utils import helpers
@@ -14,46 +14,63 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 class MpesaSTKPushView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStaff]
 
     def post(self, request):
 
         serializer = PaymentsRequestPayLoadSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
+        
+        requesting_user = request.user
+        print(f"Requesting User:{requesting_user}")
 
         phone_number = serializer.validated_data["phone_number"]
         amount = serializer.validated_data["amount"]
         account_reference = helpers.generate_reference()
+        member_id = serializer.validated_data["member"]
+        
+        print(f"Member: {member_id}" )
+
+        payment_method = serializer.validated_data["payment_method"]
+        print(f"Payment Method: {payment_method}" )
+        
         transaction_desc = serializer.validated_data["description"]
 
         if not transaction_desc:
             transaction_desc = "Payment for services"
 
-        if not phone_number or not amount:
-            return Response(
-                {"error": "Phone number and amount are required"}, status=400
-            )
+        match payment_method:
+            case "M-Pesa":
+                print("Processing Mpesa Payments")
+                mpesa = MpesaClient()
+                response = mpesa.stk_push( phone_number, amount, account_reference, transaction_desc )
 
-        mpesa = MpesaClient()
-        response = mpesa.stk_push( phone_number, amount, account_reference, transaction_desc )
+                if "error" in response:
+                    return Response(response, status=400)
 
-        if "error" in response:
-            return Response(response, status=400)
+                response_code = response.get("ResponseCode")
+                checkout_request_id = response.get("CheckoutRequestID")
+                merchant_request_id = response.get("MerchantRequestID")
+                if response_code == "0":
+                    MpesaTransaction.objects.create(
+                        merchant_request_id=merchant_request_id,
+                        checkout_request_id=checkout_request_id,
+                        reference=account_reference,
+                        phone_number=phone_number,
+                        amount=amount,
+                        description = transaction_desc,
+                    )
 
-        response_code = response.get("ResponseCode")
-        checkout_request_id = response.get("CheckoutRequestID")
-        merchant_request_id = response.get("MerchantRequestID")
-        if response_code == "0":
-            MpesaTransaction.objects.create(
-                merchant_request_id=merchant_request_id,
-                checkout_request_id=checkout_request_id,
-                reference=account_reference, 
-                phone_number=phone_number,
-                amount=amount,
-                description = transaction_desc,
-            )
+                return Response(response, status=200)
+            
+            case "Cash":
+                print("Processing Cash Payments")
+                return Response({"message": "Cash Payment Confirmed"}, status=status.HTTP_200_OK)
+            case _:
+                print("Unknown Payments method")
+                return Response({"error": "Invalid Payment Method", "message": "Payment Method not recognized"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(response, status=200)
+
 
 
 @csrf_exempt

@@ -1,7 +1,8 @@
 from django.db import models
 from users.models import CustomUser
-from subscriptions.models import Subscription
+from subscriptions.models import Plan
 from phonenumber_field.modelfields import PhoneNumberField
+from django.core.validators import MinValueValidator
 
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
@@ -16,10 +17,16 @@ class Payment(models.Model):
     ]
 
     member = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(
+        null=False,
+        blank=True,
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(1.00)],
+    )
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
     transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)  # Only for M-Pesa
-    subscription = models.OneToOneField(Subscription, on_delete=models.PROTECT, null = True, blank=True, related_name="payment")
+    plan = models.OneToOneField(Plan, on_delete=models.PROTECT, null = False, blank=False, default=1,  related_name="plan")
     recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="recorded_payments")  # Admin/Trainer
     confirmed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="confirmed_payments")  # Manual confirmation (if Cash)
     confirmation_timestamp = models.DateTimeField(null=True, blank=True)  # When was it confirmed?

@@ -61,7 +61,7 @@ class MpesaClient:
                 "PartyA": phone_number,
                 "PartyB": settings.MPESA_SHORTCODE,
                 "PhoneNumber": phone_number,
-                "CallBackURL": "https://cbea-41-220-235-155.ngrok-free.app/api/mpesa/callback/",
+                "CallBackURL": "https://eb3c-41-220-235-155.ngrok-free.app/api/mpesa/callback/",
                 "AccountReference": account_reference,
                 "TransactionDesc": transaction_desc,
             }

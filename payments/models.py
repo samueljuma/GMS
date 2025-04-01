@@ -26,10 +26,10 @@ class Payment(models.Model):
     )
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
     transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)  # Only for M-Pesa
-    plan = models.OneToOneField(Plan, on_delete=models.PROTECT, null = False, blank=False, default=1,  related_name="plan")
+    plan = models.ForeignKey(Plan, on_delete=models.PROTECT, null = False, blank=False, default=1,  related_name="plan")
     recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="recorded_payments")  # Admin/Trainer
     confirmed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="confirmed_payments")  # Manual confirmation (if Cash)
-    confirmation_timestamp = models.DateTimeField(null=True, blank=True)  # When was it confirmed?
+    updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -5,12 +5,14 @@ from api.utils.mpesa_client import MpesaClient
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from api.utils.permissions import IsStaff
-from payments.models import MpesaTransaction
+from payments.models import MpesaTransaction, Payment
 from rest_framework import generics, status
-from api.serializers.payments_serializers import MpesaTransactionSerializer, PaymentsRequestPayLoadSerializer
+from api.serializers.payments_serializers import MpesaTransactionSerializer, PaymentsRequestPayLoadSerializer, PaymentSerializer
 from rest_framework import filters
 from api.utils import helpers
 from django.views.decorators.csrf import csrf_exempt
+from users.models import CustomUser as Member
+from decimal import Decimal
 
 
 class MpesaSTKPushView(APIView):
@@ -20,20 +22,21 @@ class MpesaSTKPushView(APIView):
 
         serializer = PaymentsRequestPayLoadSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         requesting_user = request.user
         print(f"Requesting User:{requesting_user}")
 
         phone_number = serializer.validated_data["phone_number"]
         amount = serializer.validated_data["amount"]
         account_reference = helpers.generate_reference()
-        member_id = serializer.validated_data["member"]
-        
-        print(f"Member: {member_id}" )
+        member= serializer.validated_data["member"]
+        plan =serializer.validated_data["plan"]
+
+        print(f"Member: {member}" )
 
         payment_method = serializer.validated_data["payment_method"]
         print(f"Payment Method: {payment_method}" )
-        
+
         transaction_desc = serializer.validated_data["description"]
 
         if not transaction_desc:
@@ -43,7 +46,9 @@ class MpesaSTKPushView(APIView):
             case "M-Pesa":
                 print("Processing Mpesa Payments")
                 mpesa = MpesaClient()
-                response = mpesa.stk_push( phone_number, amount, account_reference, transaction_desc )
+                response = mpesa.stk_push(
+                    phone_number, amount, account_reference, transaction_desc
+                )
 
                 if "error" in response:
                     return Response(response, status=400)
@@ -58,19 +63,38 @@ class MpesaSTKPushView(APIView):
                         reference=account_reference,
                         phone_number=phone_number,
                         amount=amount,
-                        description = transaction_desc,
+                        description=transaction_desc,
+                    )
+
+                    Payment.objects.create(
+                        member=member,
+                        amount=Decimal(amount),
+                        payment_method=payment_method,
+                        transaction_id=account_reference,
+                        plan=plan,
+                        recorded_by=requesting_user,
                     )
 
                 return Response(response, status=200)
-            
+
             case "Cash":
                 print("Processing Cash Payments")
-                return Response({"message": "Cash Payment Confirmed"}, status=status.HTTP_200_OK)
+                
+                payment = Payment.objects.create(
+                    member=member,
+                    amount=Decimal(amount),
+                    payment_method=payment_method,
+                    transaction_id=account_reference,
+                    plan=plan,
+                    recorded_by=requesting_user,
+                    status = "Completed",
+                    confirmed_by=requesting_user,
+                )
+                payment_data = PaymentSerializer(payment).data
+                return Response({"payment_details": payment_data}, status=status.HTTP_200_OK)
             case _:
                 print("Unknown Payments method")
                 return Response({"error": "Invalid Payment Method", "message": "Payment Method not recognized"}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 @csrf_exempt
@@ -88,7 +112,11 @@ def mpesa_callback(request):
 
         # Get transaction from db
         transaction = transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
-
+        transaction_id = transaction.reference
+        
+        # Get payment from db
+        payment = Payment.objects.get(transaction_id = transaction_id)
+        
         transaction.result_code = result_code
         transaction.result_desc = result_desc
 
@@ -96,6 +124,7 @@ def mpesa_callback(request):
             print("Processing successful payment")
 
             transaction.status = "Completed"
+            payment.status = "Completed"
 
             metadata = callback_data.get("CallbackMetadata", {}).get("Item", [])
             for item in metadata:
@@ -107,7 +136,10 @@ def mpesa_callback(request):
                     transaction.transaction_date = item["Value"]
                 elif item["Name"] == "PhoneNumber":
                     transaction.phone_number = str(item["Value"])
-            transaction.save()
+                    
+            transaction.save() # Save mpesa transaction
+            payment.save() # Save payment record
+            
             print("Transaction saved as Completed")
 
             transaction_data = MpesaTransactionSerializer(transaction).data
@@ -116,6 +148,8 @@ def mpesa_callback(request):
         else:
             print("Processing failed payment")
             transaction.status = "Failed"
+            # payment.status = "Failed"
+            payment.delete() # Ensures you only save if payment is successful
             transaction.save()
 
             return Response({"error": "Payment failed", "message": result_desc}, status=400)
@@ -131,7 +165,16 @@ def mpesa_callback(request):
 class FetchMpesaTransactionView(generics.ListAPIView):
 
     queryset = MpesaTransaction.objects.all()
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaff]
     serializer_class = MpesaTransactionSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["id","phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]
+    
+class FetchPaymentRecords(generics.ListAPIView):
+
+    queryset = Payment.objects.all()
+    permission_classes = [IsStaff]
+    serializer_class = PaymentSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["transaction_id", "plan__name", "payment_method"]
+

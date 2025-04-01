@@ -10,6 +10,11 @@ class MpesaTransactionSerializer(serializers.ModelSerializer):
         model = MpesaTransaction
         fields = "__all__"
 
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
 class PaymentsRequestPayLoadSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=False, allow_blank=True)  # Only for M-Pesa
     reference = serializers.CharField(required=False, allow_blank=True)  # Only for M-Pesa

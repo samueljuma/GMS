@@ -13,6 +13,9 @@ from api.utils import helpers
 from django.views.decorators.csrf import csrf_exempt
 from users.models import CustomUser as Member
 from decimal import Decimal
+from subscriptions.models import Subscription
+from datetime import timedelta
+from django.utils import timezone
 
 
 class MpesaSTKPushView(APIView):
@@ -27,14 +30,17 @@ class MpesaSTKPushView(APIView):
         print(f"Requesting User:{requesting_user}")
 
         phone_number = serializer.validated_data["phone_number"]
-        amount = serializer.validated_data["amount"]
-        account_reference = helpers.generate_reference()
+        # amount = serializer.validated_data["amount"]
+        payment_method = serializer.validated_data["payment_method"]
+        account_reference = helpers.generate_reference(payment_method=payment_method)
         member= serializer.validated_data["member"]
         plan =serializer.validated_data["plan"]
+        amount = int(plan.price) # Consider changing all decimal fields to integers starting from plans
+        duration = plan.duration_days
+
+        print(f"Plan: {plan.price}" )
 
         print(f"Member: {member}" )
-
-        payment_method = serializer.validated_data["payment_method"]
         print(f"Payment Method: {payment_method}" )
 
         transaction_desc = serializer.validated_data["description"]
@@ -77,9 +83,10 @@ class MpesaSTKPushView(APIView):
 
                 return Response(response, status=200)
 
-            case "Cash":
+            case "Cash": 
                 print("Processing Cash Payments")
-                
+
+                # Record Payment
                 payment = Payment.objects.create(
                     member=member,
                     amount=Decimal(amount),
@@ -90,8 +97,32 @@ class MpesaSTKPushView(APIView):
                     status = "Completed",
                     confirmed_by=requesting_user,
                 )
+                
+                # Create Subscription for this payment
+                susbscription_start_date = timezone.now().date()
+                subscription_end_date = susbscription_start_date + timedelta(days=duration)
+                subscription_id = helpers.generateSubscriptionID(account_reference, member.id)
+
+                print(f"start_date: {susbscription_start_date} end_date: {subscription_end_date}")
+                Subscription.objects.create(
+                    subscription_id = subscription_id,
+                    plan = plan,
+                    amount_paid = plan.price,
+                    payment_reference = account_reference,
+                    start_date = susbscription_start_date,
+                    end_date = subscription_end_date,
+                    member = member
+                )
+
                 payment_data = PaymentSerializer(payment).data
-                return Response({"payment_details": payment_data}, status=status.HTTP_200_OK)
+
+                return Response(
+                    {
+                        "message": "Subscription created Successfully",
+                        "payment_details": payment_data
+                    }, 
+                    status=status.HTTP_200_OK
+                )
             case _:
                 print("Unknown Payments method")
                 return Response({"error": "Invalid Payment Method", "message": "Payment Method not recognized"}, status=status.HTTP_400_BAD_REQUEST)
@@ -113,10 +144,14 @@ def mpesa_callback(request):
         # Get transaction from db
         transaction = transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
         transaction_id = transaction.reference
-        
+
         # Get payment from db
         payment = Payment.objects.get(transaction_id = transaction_id)
-        
+        duration = payment.plan.duration_days
+        plan = payment.plan
+        payment_reference = payment.transaction_id
+        member = payment.member
+
         transaction.result_code = result_code
         transaction.result_desc = result_desc
 
@@ -136,10 +171,26 @@ def mpesa_callback(request):
                     transaction.transaction_date = item["Value"]
                 elif item["Name"] == "PhoneNumber":
                     transaction.phone_number = str(item["Value"])
-                    
+
             transaction.save() # Save mpesa transaction
             payment.save() # Save payment record
-            
+
+            # Create Subscription for this payment
+            susbscription_start_date = timezone.now().date()
+            subscription_end_date = susbscription_start_date + timedelta(days=duration)
+            subscription_id = helpers.generateSubscriptionID(payment_reference, member.id)
+            print(f"start_date: {susbscription_start_date} end_date: {subscription_end_date}")
+
+            Subscription.objects.create(
+                subscription_id =subscription_id,
+                plan=plan,
+                amount_paid=plan.price,
+                payment_reference=payment_reference,
+                start_date=susbscription_start_date,
+                end_date=subscription_end_date,
+                member=member,
+            )
+
             print("Transaction saved as Completed")
 
             transaction_data = MpesaTransactionSerializer(transaction).data
@@ -169,7 +220,7 @@ class FetchMpesaTransactionView(generics.ListAPIView):
     serializer_class = MpesaTransactionSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["id","phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]
-    
+
 class FetchPaymentRecords(generics.ListAPIView):
 
     queryset = Payment.objects.all()
@@ -177,4 +228,3 @@ class FetchPaymentRecords(generics.ListAPIView):
     serializer_class = PaymentSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["transaction_id", "plan__name", "payment_method"]
-

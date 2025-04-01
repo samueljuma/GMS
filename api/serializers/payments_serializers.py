@@ -19,13 +19,12 @@ class PaymentsRequestPayLoadSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=False, allow_blank=True)  # Only for M-Pesa
     reference = serializers.CharField(required=False, allow_blank=True)  # Only for M-Pesa
     description = serializers.CharField(required=False, allow_blank=True)  # Only for M-Pesa
-    amount = serializers.CharField()
+    # amount = serializers.CharField()
 
     class Meta:
         model = Payment
         fields = [
             "member",
-            "amount",
             "payment_method",
             "plan",
             "phone_number",
@@ -36,17 +35,13 @@ class PaymentsRequestPayLoadSerializer(serializers.ModelSerializer):
     def validate(self, data):
         payment_method = data.get("payment_method")
         plan = data.get("plan")
-        amount = data.get("amount")
-
-        # Ensure amount is provided
-        if not amount:
-            raise serializers.ValidationError({"amount": "Amount is Required"})
+        amount = plan.price
 
         # Convert to Decimal and check minimum value
         try:
             amount = Decimal(amount)
             if amount < 1:
-                raise serializers.ValidationError({"amount": "Amount is Required"})
+                raise serializers.ValidationError({"amount": "Invalid Amount"})
         except (InvalidOperation, ValueError):
             raise serializers.ValidationError({"amount": "Must be a valid number"})
 

@@ -314,3 +314,9 @@ python manage.py migrate payments --fake-initial
 
 ```
 
+### Solving Circular Imports 
+> Instead of from payments.models import Payment, we use "payments.Payment" inside the OneToOneField. 
+> This tells Django to resolve it later, avoiding the circular import issue.
+```bash
+ payment = models.OneToOneField("payments.Payment", on_delete=models.PROTECT, related_name="subscription_payment")  # Lazy reference
+```

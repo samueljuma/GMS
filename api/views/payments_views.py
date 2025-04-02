@@ -207,7 +207,9 @@ def mpesa_callback(request):
     except MpesaTransaction.DoesNotExist:
         print(f"Transaction with CheckoutRequestID {checkout_request_id} not found")
         return Response({"error": "Transaction not found", "message": "No such transaction"}, status=400)
-
+    except Payment.DoesNotExist: 
+        print(f"Payment with reference {checkout_request_id} was not found")
+        return Response({"error": "Payment not found", "message": "A payment with the reference provided was not such payment"}, status=400)
     except Exception as e:
         print("Error processing M-Pesa callback:", str(e))
         return Response({"error": "Invalid callback data"}, status=400)

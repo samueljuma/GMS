@@ -320,3 +320,19 @@ python manage.py migrate payments --fake-initial
 ```bash
  payment = models.OneToOneField("payments.Payment", on_delete=models.PROTECT, related_name="subscription_payment")  # Lazy reference
 ```
+### Solving merge conflics using reset --hard
+```bash
+# Ensure Everything is Up to Date
+git checkout payments
+git pull origin payments
+git checkout main
+git pull origin main
+
+# Overwrite main with payments
+git checkout main
+git reset --hard payments
+
+# Push the Changes to Remote
+git push origin main --force
+
+```

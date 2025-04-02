@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "django_filters",  # For filtering
     "subscriptions.apps.SubscriptionsConfig",
     "payments.apps.PaymentsConfig",
+    "attendance.apps.AttendanceConfig",
 ]
 
 MIDDLEWARE = [

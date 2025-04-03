@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.routers import DefaultRouter
 from api.views.users_views import UserViewSet
 from api.views.subscriptions_views import PlanViewSet, FetchSubscriptions
+from api.views.attendance_views import MarkAttendanceView, FetchAttendance
 
 router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="user")
@@ -20,5 +21,8 @@ urlpatterns = [
     path("mpesa/callback/", mpesa_callback, name="mpesa_callback"),
     path("mpesa/transactions/", FetchMpesaTransactionView.as_view(), name="fetch-mpesa-transactions"),
     path("subscriptions/", FetchSubscriptions.as_view(), name="subscriptions"),
-    path("payments/fetch-records/", FetchPaymentRecords.as_view(), name="payment_records")
+    path("payments/fetch-records/", FetchPaymentRecords.as_view(), name="payment_records"),
+    path("attendance/mark-member-attendance/", MarkAttendanceView.as_view(), name="member_attendance"),
+    path("attendance/fetch-attendance/", FetchAttendance.as_view(), name="attendance-records")
+    
 ]

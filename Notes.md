@@ -336,3 +336,13 @@ git reset --hard payments
 git push origin main --force
 
 ```
+---
+#### Avoiding duplicates when creating objects 101s
+- use `Use get_or_create()`
+```python
+attendance, created = Attendance.objects.get_or_create(
+    member=member,
+    date=date,
+    defaults={"marked_by": requesting_user}
+)
+```

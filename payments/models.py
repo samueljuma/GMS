@@ -25,7 +25,7 @@ class Payment(models.Model):
         validators=[MinValueValidator(1.00)],
     )
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
-    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)  # Only for M-Pesa
+    reference = models.CharField(max_length=100, unique=True, null=True, blank=True)  # Only for M-Pesa
     plan = models.ForeignKey(Plan, on_delete=models.PROTECT, null = False, blank=False, default=1,  related_name="plan")
     recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="recorded_payments")  # Admin/Trainer
     confirmed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name="confirmed_payments")  # Manual confirmation (if Cash)

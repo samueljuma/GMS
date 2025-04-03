@@ -76,7 +76,7 @@ class MpesaSTKPushView(APIView):
                         member=member,
                         amount=Decimal(amount),
                         payment_method=payment_method,
-                        transaction_id=account_reference,
+                        reference=account_reference,
                         plan=plan,
                         recorded_by=requesting_user,
                     )
@@ -91,7 +91,7 @@ class MpesaSTKPushView(APIView):
                     member=member,
                     amount=Decimal(amount),
                     payment_method=payment_method,
-                    transaction_id=account_reference,
+                    reference=account_reference,
                     plan=plan,
                     recorded_by=requesting_user,
                     status = "Completed",
@@ -143,13 +143,13 @@ def mpesa_callback(request):
 
         # Get transaction from db
         transaction = transaction = MpesaTransaction.objects.get(checkout_request_id=checkout_request_id)
-        transaction_id = transaction.reference
+        reference = transaction.reference
 
         # Get payment from db
-        payment = Payment.objects.get(transaction_id = transaction_id)
+        payment = Payment.objects.get(reference = reference)
         duration = payment.plan.duration_days
         plan = payment.plan
-        payment_reference = payment.transaction_id
+        payment_reference = payment.reference
         member = payment.member
 
         transaction.result_code = result_code
@@ -209,7 +209,7 @@ def mpesa_callback(request):
         return Response({"error": "Transaction not found", "message": "No such transaction"}, status=400)
     except Payment.DoesNotExist: 
         print(f"Payment with reference {checkout_request_id} was not found")
-        return Response({"error": "Payment not found", "message": "A payment with the reference provided was not such payment"}, status=400)
+        return Response({"error": "Payment not found", "message": "A payment with the reference provided was not found"}, status=400)
     except Exception as e:
         print("Error processing M-Pesa callback:", str(e))
         return Response({"error": "Invalid callback data"}, status=400)
@@ -220,13 +220,17 @@ class FetchMpesaTransactionView(generics.ListAPIView):
     queryset = MpesaTransaction.objects.all()
     permission_classes = [IsStaff]
     serializer_class = MpesaTransactionSerializer
-    filter_backends = [filters.SearchFilter]
+    filterset_fields = ["reference"]
+    # filter_backends = [filters.SearchFilter, filters.OrderingFilter] # Provided as default in settings
     search_fields = ["id","phone_number", "transaction_date", "mpesa_receipt_number", "checkout_request_id"]
+    ordering = ["-id"]
 
 class FetchPaymentRecords(generics.ListAPIView):
 
     queryset = Payment.objects.all()
     permission_classes = [IsStaff]
     serializer_class = PaymentSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["transaction_id", "plan__name", "payment_method"]
+    filterset_fields = ["reference", "payment_method", "plan"]
+    # filter_backends = [filters.SearchFilter]
+    search_fields = ["reference", "plan__name", "payment_method"]
+    ordering = ["-created_at"]

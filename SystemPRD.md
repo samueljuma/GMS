@@ -74,7 +74,7 @@ This document outlines the database schema for a Gym Management System, detailin
 | `member_id`      | Foreign Key (Users)               | Member making the payment              |
 | `amount`         | Decimal(10,2)                     | Payment amount                         |
 | `payment_method` | Enum (Cash, M-Pesa)               | Payment type                           |
-| `transaction_id` | String (Unique, Nullable)         | M-Pesa transaction ID (if applicable)  |
+| `reference` | String (Unique, Nullable)         | M-Pesa transaction ID (if applicable)  |
 | `recorded_by`    | Foreign Key (Users)               | Admin/Trainer who recorded the payment |
 | `status`         | Enum (Pending, Completed, Failed) | Payment state                          |
 | `created_at`     | DateTime                          | Payment timestamp                      |
